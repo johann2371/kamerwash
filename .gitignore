@@ -1,0 +1,14 @@
+# Git ignore for AquaWash project
+/node_modules
+/backend/vendor
+/backend/.env
+/backend/storage/*.key
+/backend/storage/logs/*.log
+/backend/storage/framework/cache/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/frontend/dist
+/frontend/node_modules
+.DS_Store
+Thumbs.db
+*.sqlite
