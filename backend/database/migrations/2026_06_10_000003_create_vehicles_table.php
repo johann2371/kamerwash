@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('type'); // citadine, berline, suv_4x4, utilitaire, moto
             $table->string('brand')->nullable();
             $table->string('model')->nullable();
-            $table->string('license_plate')->nullable();
+            $table->string('license_plate')->nullable()->index();
             $table->string('color')->nullable();
             $table->timestamps();
         });
