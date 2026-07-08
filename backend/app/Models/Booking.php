@@ -60,4 +60,9 @@ class Booking extends Model
     {
         return 'AQW-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
     }
+
+    public function isPaid(): bool
+    {
+        return in_array($this->payment_status, ['paid_online', 'paid_on_site']);
+    }
 }
