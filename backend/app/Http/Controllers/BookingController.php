@@ -15,7 +15,6 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
         $query = Booking::with(['service', 'vehicle', 'technician:id,name,phone']);
 
         if ($user->role === 'client') {
@@ -32,7 +31,6 @@ class BookingController extends Controller
         }
 
         $bookings = $query->orderBy('scheduled_date', 'desc')->get();
-
         return $this->successResponse($bookings);
     }
 
@@ -83,12 +81,62 @@ class BookingController extends Controller
                 'payment_status' => $request->payment_method === 'online' ? 'paid_online' : 'unpaid',
             ]);
 
-            return $this->successResponse($booking->load(['service', 'vehicle']), 'Réservation confirmée avec succès !', 201);
+            return $this->successResponse($booking->load(['service', 'vehicle']), 'Réservation enregistrée avec succès !', 201);
         });
     }
 
     public function show(Booking $booking)
     {
         return $this->successResponse($booking->load(['service', 'vehicle', 'technician', 'review']));
+    }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        $user = $request->user();
+        if ($user->role === 'client' && $booking->user_id !== $user->id) {
+            return $this->errorResponse('Non autorisé.', 403);
+        }
+
+        if (in_array($booking->status, ['completed', 'cancelled'])) {
+            return $this->errorResponse('Cette réservation ne peut plus être annulée.', 422);
+        }
+
+        $booking->update(['status' => 'cancelled']);
+        return $this->successResponse($booking, 'Réservation annulée avec succès');
+    }
+
+    public function updateStatus(UpdateBookingStatusRequest $request, Booking $booking)
+    {
+        $booking->update($request->validated());
+        return $this->successResponse($booking->fresh(['service', 'technician']), 'Statut mis à jour');
+    }
+
+    public function availableSlots(Request $request)
+    {
+        $date = $request->query('date', now()->format('Y-m-d'));
+        $allSlots = [
+            '08:00 - 10:00',
+            '10:00 - 12:00',
+            '14:00 - 16:00',
+            '16:00 - 18:00',
+        ];
+
+        $counts = Booking::where('scheduled_date', $date)
+            ->where('status', '!=', 'cancelled')
+            ->select('time_slot', DB::raw('count(*) as total'))
+            ->groupBy('time_slot')
+            ->pluck('total', 'time_slot');
+
+        $result = [];
+        foreach ($allSlots as $slot) {
+            $booked = $counts[$slot] ?? 0;
+            $result[] = [
+                'slot' => $slot,
+                'available' => $booked < 3,
+                'remaining' => max(0, 3 - $booked),
+            ];
+        }
+
+        return $this->successResponse($result);
     }
 }
