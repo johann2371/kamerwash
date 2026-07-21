@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Booking extends Model
 {
@@ -56,13 +57,18 @@ class Booking extends Model
         return $this->hasOne(Review::class);
     }
 
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['pending', 'confirmed', 'in_progress']);
+    }
+
+    public function scopeForDate(Builder $query, string $date): Builder
+    {
+        return $query->whereDate('scheduled_date', $date);
+    }
+
     public static function generateReference(): string
     {
         return 'AQW-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
-    }
-
-    public function isPaid(): bool
-    {
-        return in_array($this->payment_status, ['paid_online', 'paid_on_site']);
     }
 }
