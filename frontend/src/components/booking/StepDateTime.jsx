@@ -1,10 +1,10 @@
 import React from 'react';
 
 const SLOTS = [
-  '08:00 - 10:00',
-  '10:00 - 12:00',
-  '14:00 - 16:00',
-  '16:00 - 18:00',
+  { time: '08:00 - 10:00', label: 'Matin 1', spots: 2 },
+  { time: '10:00 - 12:00', label: 'Matin 2', spots: 1 },
+  { time: '14:00 - 16:00', label: 'Après-midi 1', spots: 3 },
+  { time: '16:00 - 18:00', label: 'Fin de journée', spots: 2 },
 ];
 
 export default function StepDateTime({ scheduledDate, setScheduledDate, timeSlot, setTimeSlot, onPrev, onNext }) {
@@ -24,19 +24,19 @@ export default function StepDateTime({ scheduledDate, setScheduledDate, timeSlot
       <div>
         <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Sélectionnez le créneau horaire</label>
         <div className="grid grid-cols-2 gap-3">
-          {SLOTS.map((slot) => (
+          {SLOTS.map((s) => (
             <button
-              key={slot}
+              key={s.time}
               type="button"
-              onClick={() => setTimeSlot(slot)}
+              onClick={() => setTimeSlot(s.time)}
               className={`p-4 rounded-xl border text-center transition-all ${
-                timeSlot === slot
-                  ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold ring-2 ring-brand-500/20'
-                  : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                timeSlot === s.time
+                  ? 'border-brand-600 bg-brand-50/80 text-brand-900 font-bold ring-2 ring-brand-500/20'
+                  : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
               }`}
             >
-              <div className="text-sm font-semibold">{slot}</div>
-              <div className="text-[11px] text-emerald-600 font-medium mt-1">✓ Technicien disponible</div>
+              <div className="text-sm font-semibold">{s.time}</div>
+              <div className="text-[11px] text-emerald-600 font-medium mt-1">✓ {s.spots} techniciens dispos</div>
             </button>
           ))}
         </div>
