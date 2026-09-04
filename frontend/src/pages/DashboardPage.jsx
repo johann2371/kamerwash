@@ -44,7 +44,13 @@ const DEMO_BOOKINGS = [
 ];
 
 export default function DashboardPage({ onNewBooking }) {
-  const [bookings] = useState(DEMO_BOOKINGS);
+  const [bookings, setBookings] = useState(DEMO_BOOKINGS);
+
+  const handleCancel = (id) => {
+    if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+    }
+  };
 
   return (
     <div className="py-12 bg-slate-50 min-h-screen">
@@ -115,6 +121,15 @@ export default function DashboardPage({ onNewBooking }) {
                     <div className="text-xs font-semibold text-slate-500">Montant</div>
                     <div className="text-lg font-black text-slate-900">{b.total_amount} €</div>
                   </div>
+
+                  {b.status === 'confirmed' && (
+                    <button
+                      onClick={() => handleCancel(b.id)}
+                      className="text-xs text-rose-600 hover:text-rose-800 font-semibold underline"
+                    >
+                      Annuler
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
