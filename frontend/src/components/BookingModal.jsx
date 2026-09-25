@@ -8,19 +8,25 @@ export default function BookingModal({ isOpen, onClose, services, preSelectedSer
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState(preSelectedService || services[0]);
   const [vehicleType, setVehicleType] = useState('berline');
-  const [scheduledDate, setScheduledDate] = useState('2026-09-15');
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  });
   const [timeSlot, setTimeSlot] = useState('10:00 - 12:00');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [successData, setSuccessData] = useState(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setErrorMessage('');
     const payload = {
       service_id: selectedService.id,
       vehicle_type: vehicleType,
@@ -32,15 +38,23 @@ export default function BookingModal({ isOpen, onClose, services, preSelectedSer
       notes,
     };
 
-    const res = await createBooking(payload);
-    setIsSubmitting(false);
-    if (res.success || res.data) {
-      setSuccessData(res.data || res);
+    try {
+      const res = await createBooking(payload);
+      setIsSubmitting(false);
+      if (res.success || res.data) {
+        setSuccessData(res.data || res);
+      } else {
+        setErrorMessage(res.message || 'Erreur lors de la réservation');
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMessage('Une erreur est survenue lors de la validation.');
     }
   };
 
   const handleReset = () => {
     setSuccessData(null);
+    setErrorMessage('');
     setStep(1);
     onClose();
   };
@@ -50,9 +64,9 @@ export default function BookingModal({ isOpen, onClose, services, preSelectedSer
       <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div>
-            <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider">Réservation à domicile</span>
+            <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider">Réservation Express</span>
             <h3 className="text-xl font-black text-slate-900">
-              {successData ? 'Réservation confirmée !' : `Étape ${step} sur 3`}
+              {successData ? 'Confirmation d\'intervention' : `Étape ${step} sur 3`}
             </h3>
           </div>
           <button
@@ -64,21 +78,28 @@ export default function BookingModal({ isOpen, onClose, services, preSelectedSer
         </div>
 
         <div className="p-6">
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-semibold">
+              ⚠️ {errorMessage}
+            </div>
+          )}
+
           {successData ? (
             <div className="text-center py-6 space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl font-black">
                 ✓
               </div>
-              <h4 className="text-2xl font-bold text-slate-900">C'est réservé !</h4>
+              <h4 className="text-2xl font-bold text-slate-900">Rendez-vous validé !</h4>
               <p className="text-sm text-slate-600 max-w-sm mx-auto">
-                Votre réservation <strong>{successData.booking_reference || 'AQW-REF'}</strong> a été enregistrée. Notre technicien se présentera le <strong>{scheduledDate}</strong> à <strong>{timeSlot}</strong>.
+                Votre référence : <strong className="font-mono text-brand-600">{successData.booking_reference || 'AQW-REF'}</strong>.<br/>
+                Intervention prévue le <strong>{scheduledDate}</strong> sur le créneau <strong>{timeSlot}</strong>.
               </p>
               <div className="pt-4">
                 <button
                   onClick={handleReset}
                   className="px-6 py-2.5 bg-brand-600 text-white font-bold text-sm rounded-xl"
                 >
-                  Fermer et voir mes réservations
+                  Terminer
                 </button>
               </div>
             </div>
