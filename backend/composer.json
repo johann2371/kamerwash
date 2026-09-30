@@ -1,5 +1,6 @@
 {
     "name": "aquawash/api",
+    "version": "1.0.0",
     "type": "project",
     "description": "API Laravel pour le service de lavage à domicile AquaWash",
     "keywords": ["laravel", "aquawash", "carwash", "cleaning", "api"],
